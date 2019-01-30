@@ -16,21 +16,18 @@
   'use strict';
 
   if (!Array.prototype.indexOf) {
-    Array.prototype.indexOf = function(elt /*, from*/)
-    {
+    Array.prototype.indexOf = function(elt /*, from*/){
       var len = this.length >>> 0;
 
       var from = Number(arguments[1]) || 0;
       from = (from < 0)
       ? Math.ceil(from)
       : Math.floor(from);
-      if (from < 0)
-        from += len;
+      if (from < 0) from += len;
 
-      for (; from < len; from++)
-      {
+      for (; from < len; from++){
         if (from in this &&
-            this[from] === elt)
+          this[from] === elt)
           return from;
       }
       return -1;
@@ -62,7 +59,7 @@
 
   Lockr.set = function(key, value, options) {
     var query_key = this._getPrefixedKey(key, options),
-      expires = this.getExpirationTime(options);
+    expires = this.getExpirationTime(options);
     try {
       localStorage.setItem(query_key, JSON.stringify({"data": value, "timestamp":expires}));
     } catch (e) {
@@ -72,7 +69,7 @@
 
   Lockr.get = function (key, missing, options) {
     var query_key = this._getPrefixedKey(key, options),
-        value;
+    value;
 
     try {
       value = JSON.parse(localStorage.getItem(query_key));
@@ -80,11 +77,11 @@
         value.timestamp = this.getExpirationTime(options);
       };
     } catch (e) {
-            if(localStorage[query_key]) {
-              value = {data: localStorage.getItem(query_key), timestamp: this.getExpirationTime(options)};
-            } else{
-                value = null;
-            }
+      if(localStorage[query_key]) {
+        value = {data: localStorage.getItem(query_key), timestamp: this.getExpirationTime(options)};
+      } else{
+        value = null;
+      }
     }
 
     if(!value) {
@@ -97,7 +94,7 @@
 
   Lockr.sadd = function(key, value, options) {
     var query_key = this._getPrefixedKey(key, options),
-        json;
+    json;
 
     var values = Lockr.smembers(key);
 
@@ -117,7 +114,7 @@
 
   Lockr.smembers = function(key, options) {
     var query_key = this._getPrefixedKey(key, options),
-        value;
+    value;
 
     try {
       value = JSON.parse(localStorage.getItem(query_key));
@@ -168,8 +165,8 @@
 
   Lockr.srem = function(key, value, options) {
     var query_key = this._getPrefixedKey(key, options),
-        json,
-        index;
+    json,
+    index;
 
     var values = Lockr.smembers(key, value);
 
