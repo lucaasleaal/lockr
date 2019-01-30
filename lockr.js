@@ -38,6 +38,7 @@
   }
 
   Lockr.prefix = "";
+  Lockr.expires = false; //never expires
 
   Lockr._getPrefixedKey = function(key, options) {
     options = options || {};
@@ -50,11 +51,20 @@
 
   };
 
-  Lockr.set = function (key, value, options) {
-    var query_key = this._getPrefixedKey(key, options);
+  Lockr.getExpirationTime = function(options) {
+    options = options || {};
+    if (options.expires) {
+      return new Date().getTime() + options.expires * 60 * 1000;
+    } else {
+      return this.expires;
+    };
+  }
 
+  Lockr.set = function(key, value, options) {
+    var query_key = this._getPrefixedKey(key, options),
+      expires = this.getExpirationTime(options);
     try {
-      localStorage.setItem(query_key, JSON.stringify({"data": value}));
+      localStorage.setItem(query_key, JSON.stringify({"data": value, "timestamp":expires}));
     } catch (e) {
       if (console) console.warn("Lockr didn't successfully save the '{"+ key +": "+ value +"}' pair, because the localStorage is full.");
     }
@@ -66,18 +76,21 @@
 
     try {
       value = JSON.parse(localStorage.getItem(query_key));
+      if (!value.timestamp) {
+        value.timestamp = this.getExpirationTime(options);
+      };
     } catch (e) {
             if(localStorage[query_key]) {
-              value = {data: localStorage.getItem(query_key)};
+              value = {data: localStorage.getItem(query_key), timestamp: this.getExpirationTime(options)};
             } else{
                 value = null;
             }
     }
-    
+
     if(!value) {
       return missing;
     }
-    else if (typeof value === 'object' && typeof value.data !== 'undefined') {
+    else if (typeof value === 'object' && typeof value.data !== 'undefined'  && (value.timestamp===false || new Date().getTime() < value.timestamp)) {
       return value.data;
     }
   };
@@ -111,7 +124,7 @@
     } catch (e) {
       value = null;
     }
-    
+
     return (value && value.data) ? value.data : [];
   };
 
@@ -176,7 +189,7 @@
 
   Lockr.rm =  function (key) {
     var queryKey = this._getPrefixedKey(key);
-    
+
     localStorage.removeItem(queryKey);
   };
 
